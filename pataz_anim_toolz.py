@@ -64,6 +64,35 @@ class PatazOperator (bpy.types.Operator):
 			
 		return {'FINISHED'}
 
+class PatazStoreMatrix (bpy.types.Operator):
+	'''Store the matrix of selected objects'''
+	bl_idname = 'object.pataz_store_matrix'
+	bl_label = 'Store Matrix'
+	bl_options = {'REGISTER', 'UNDO'}
+	
+	def execute(self, context):
+		
+		objects = context.selected_objects
+		
+		for object in objects:
+			object.pataz_anim['matrix'] = object.matrix_world
+			
+		return {'FINISHED'}
+
+class PatazApplyMatrix (bpy.types.Operator):
+	'''Apply the saved matrix of selected objects'''
+	bl_idname = 'object.pataz_apply_matrix'
+	bl_label = 'Apply Matrix'
+	bl_options = {'REGISTER', 'UNDO'}
+	
+	def execute(self, context):
+		
+		objects = context.selected_objects
+		
+		for object in objects:
+			object.matrix_world = object.pataz_anim['matrix']
+			
+		return {'FINISHED'}
 
 # --- PANELS
 
@@ -105,8 +134,9 @@ class PatazAnimToolzOperatorPanel (bpy.types.Panel):
 		
 		row = layout.row()
 		row.operator ('object.pataz_operator', icon = 'SHADING_RENDERED')
-		row = layout.row()
-		row.operator ('object.pataz_operator', icon = 'LOCKED')
+		column = layout.column(align = True)
+		column.operator ('object.pataz_store_matrix', icon = 'FILE_TICK')
+		column.operator ('object.pataz_apply_matrix', icon = 'FILE_REFRESH')
 
 class PatazAnimToolzSettingsPanel (bpy.types.Panel):
 	bl_parent_id = 'OBJECT_PT_PatazAnimToolz'
@@ -180,6 +210,8 @@ classes = (
 	PatazAnimToolzLinks,
 	
 	PatazOperator,
+	PatazStoreMatrix,
+	PatazApplyMatrix
 )
  
 reg_cls, unreg_cls = bpy.utils.register_classes_factory (classes)
