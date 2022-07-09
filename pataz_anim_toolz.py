@@ -86,7 +86,7 @@ class PatazStoreMatrix (bpy.types.Operator):
 		return {'FINISHED'}
 
 class PatazApplyMatrix (bpy.types.Operator):
-	'''Apply the saved matrix of selected objects'''
+	'''Apply the saved matrix to the selected object'''
 	bl_idname = 'object.pataz_apply_matrix'
 	bl_label = 'Apply Matrix'
 	bl_options = {'REGISTER', 'UNDO'}
