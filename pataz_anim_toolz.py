@@ -13,7 +13,7 @@ import bpy
 
 # --- PROPERTIES
 
-class PatazAnim (bpy.types.PropertyGroup):
+class PatazAnimObject (bpy.types.PropertyGroup):
 	
 	example_enum : bpy.props.EnumProperty (
 	name = 'Example Enum',
@@ -41,10 +41,16 @@ class PatazAnim (bpy.types.PropertyGroup):
 	options = set() # Non animatable
 	)
 
+class PatazAnimScene (bpy.types.PropertyGroup):
+	
+	pass
 
-bpy.utils.register_class(PatazAnim)
 
-bpy.types.Object.pataz_anim = bpy.props.PointerProperty(type = PatazAnim)
+bpy.utils.register_class(PatazAnimObject)
+bpy.utils.register_class(PatazAnimScene)
+
+bpy.types.Object.pataz_anim = bpy.props.PointerProperty(type = PatazAnimObject)
+bpy.types.Scene.pataz_anim = bpy.props.PointerProperty(type = PatazAnimScene)
 
 
 # --- OPERATORS
@@ -65,17 +71,17 @@ class PatazOperator (bpy.types.Operator):
 		return {'FINISHED'}
 
 class PatazStoreMatrix (bpy.types.Operator):
-	'''Store the matrix of selected objects'''
+	'''Store the matrix of the selected object'''
 	bl_idname = 'object.pataz_store_matrix'
 	bl_label = 'Store Matrix'
 	bl_options = {'REGISTER', 'UNDO'}
 	
 	def execute(self, context):
 		
-		objects = context.selected_objects
+		scene = context.scene
+		object = context.object
 		
-		for object in objects:
-			object.pataz_anim['matrix'] = object.matrix_world
+		scene.pataz_anim['matrix'] = object.matrix_world
 			
 		return {'FINISHED'}
 
@@ -87,10 +93,10 @@ class PatazApplyMatrix (bpy.types.Operator):
 	
 	def execute(self, context):
 		
-		objects = context.selected_objects
+		scene = context.scene
+		object = context.object
 		
-		for object in objects:
-			object.matrix_world = object.pataz_anim['matrix']
+		object.matrix_world = scene.pataz_anim['matrix']
 			
 		return {'FINISHED'}
 
