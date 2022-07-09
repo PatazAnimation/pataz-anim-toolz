@@ -15,8 +15,6 @@ import bpy
 
 class PatazAnim (bpy.types.PropertyGroup):
 	
-	# Rigify properties
-	
 	example_enum : bpy.props.EnumProperty (
 	name = 'Example Enum',
 	description = 'Set the description here',
