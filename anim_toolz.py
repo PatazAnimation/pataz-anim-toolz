@@ -79,7 +79,6 @@ class Pataz_world_matrix_paste(bpy.types.Operator):
         return (context.active_object is not None) & (Pataz_mw != '')
 
     def execute(self, context):
-        print("blah!")
         obj = context.active_object
         global Pataz_mw
         print (str(Pataz_mw))
