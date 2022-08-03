@@ -44,8 +44,8 @@ For now this section only contains simplify, but there are plans to add more set
 
 This panel reorganises the UI for the Bone Selection Sets addon that comes with Blender. 
 It is only displayed when the active object is an armature in pose mode.
-In order to use it, you have to enable the official Bone Selection Sets addon. If the addon is not enabled, a button is displayed so that you can enabled it woithout having to go to user prefs.
-In addition to making use of the official selection sets addon, thus maintaining compatibility, it also alters some of the functionality.
+In order to use it, you have to enable the official Bone Selection Sets addon. If the addon is not enabled, a button is displayed so that you can enabled it without having to go to user preferences.
+In addition to making use of the official selection sets addon, thus maintaining compatibility, it also changes some of the behaviour.
 
 ### Top level buttons:
 At the top of the panel are 3 buttons that let you copy, paste or clear all the selection sets.
@@ -54,7 +54,7 @@ At the top of the panel are 3 buttons that let you copy, paste or clear all the 
 By clicking the "New" button you create a new selection set, which you immediately name, and your current selection is assigned to it.
 
 ### Selecting:
-The behaviour of selecting a set has been made to be more like selection in other programs, including most file browsers.
+The behaviour of selecting a set has behaves more like selection in other programs, including most file browsers.
 - LMB: selects the bones in that set exclusively; it deselects any other bones not in that set.
 - Shift-LMB: adds the set to your selection.
 - Ctrl-LMB: removes the set from your selection.
