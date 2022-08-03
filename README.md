@@ -61,6 +61,7 @@ The behaviour of selecting a set has been made to be more like selection in othe
 
 ### Selection Set options:
 To the right of each set is a button labelled "..." that opens an options panel for that set. It enables you to:
+- rename the selection set
 - add your selection to that set.
 - remove your selection from that set.
 - delete the selection set.
