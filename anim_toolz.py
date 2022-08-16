@@ -16,6 +16,7 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 import bpy
+import mathutils
 
 # --- PROPERTIES
 
@@ -44,6 +45,28 @@ def insert_xform_key(obj,fr):
     obj.keyframe_insert(data_path='rotation_axis_angle', frame=fr, options={'INSERTKEY_AVAILABLE'})
     obj.keyframe_insert(data_path='scale', frame=fr, options={'INSERTKEY_AVAILABLE'})
 
+def findChildOf(obj):
+    childOf = ''
+    for con in obj.constraints:
+        if con.type == 'CHILD_OF':
+            childOf = con.name
+            if not obj.constraints[childOf].enabled or obj.constraints[childOf].influence == 0.0:
+                print("ChildOf constraint disabled")
+                childOf = ''
+    return childOf
+
+def childOfBasis(obj, childOf):
+        ChildOf_target = obj.constraints[childOf].target
+        if obj.constraints[childOf].subtarget:
+            print("ChildOf parent is a bone.")
+            childOf_parent = ChildOf_target.matrix_world @ ChildOf_target.pose.bones[obj.constraints[childOf].subtarget].matrix
+        else:
+            print("ChildOf parent is an object.")
+            childOf_parent = ChildOf_target.matrix_world
+
+        childOf_inv = obj.constraints[childOf].inverse_matrix
+        basis = childOf_parent @ childOf_inv
+        return basis
 
 # --- OPERATORS
 
@@ -68,31 +91,6 @@ class Pataz_world_matrix_copy(bpy.types.Operator):
         print (str(Pataz_mw))
         return {'FINISHED'}
 
-class Pataz_world_matrix_paste(bpy.types.Operator):
-    """Paste the world coordinates of the active object or bone"""
-    bl_idname = "scene.pataz_world_matrix_paste"
-    bl_label = "Paste World Matrix"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object is not None) & (Pataz_mw != '')
-
-    def execute(self, context):
-        obj = context.active_object
-        global Pataz_mw
-        print (str(Pataz_mw))
-        if ((obj.type == 'ARMATURE') & (obj.mode == 'POSE')):
-            context.active_pose_bone.matrix =  context.active_object.matrix_world.inverted() @ Pataz_mw
-            if context.scene.tool_settings.use_keyframe_insert_auto:
-                insert_xform_key(context.active_pose_bone, context.scene.frame_current)
-        else:
-            context.active_object.matrix_world = Pataz_mw
-            if context.scene.tool_settings.use_keyframe_insert_auto:
-                insert_xform_key(obj, context.scene.frame_current)
-
-        return {'FINISHED'}
-
 class Pataz_rel_xform_copy(bpy.types.Operator):
     """Copy the relative coordinates of the selected bone to the active bone.\nMust have exactly 2 bones selected"""
     bl_idname = "scene.pataz_rel_xform_copy"
@@ -114,6 +112,50 @@ class Pataz_rel_xform_copy(bpy.types.Operator):
         Pataz_mr = matrix_2.inverted() @ matrix_1
         return {'FINISHED'}
 
+class Pataz_world_matrix_paste(bpy.types.Operator):
+    """Paste the world coordinates of the active object or bone"""
+    bl_idname = "scene.pataz_world_matrix_paste"
+    bl_label = "Paste World Matrix"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object is not None) & (Pataz_mw != '')
+
+    def execute(self, context):
+        obj = context.active_object
+        global Pataz_mw
+
+        bone = False
+        if ((obj.type == 'ARMATURE') & (obj.mode == 'POSE')):
+            bone = True
+            arm = obj
+            obj = context.active_pose_bone
+            target_matrix = obj.matrix
+        else:
+            target_matrix = obj.matrix_world
+
+        childOf = findChildOf(obj)
+
+        if childOf:
+            print("ChildOf constraint found")
+            basis = childOfBasis(obj, childOf)
+            if bone:
+                obj.matrix = basis.inverted() @ Pataz_mw
+            else:
+                obj.matrix_world = basis.inverted() @ Pataz_mw
+        else:
+            print("ChildOf constraint not found")
+            if bone:
+                obj.matrix =  arm.matrix_world.inverted() @ Pataz_mw
+            else:
+                obj.matrix_world = Pataz_mw
+
+        if context.scene.tool_settings.use_keyframe_insert_auto:
+            insert_xform_key(obj, context.scene.frame_current)
+
+        return {'FINISHED'}
+
 class Pataz_rel_xform_paste(bpy.types.Operator):
     """Paste the relative coordinates of the selected bone to the active bone\nMust have exactly 2 bones selected"""
     bl_idname = "scene.pataz_rel_xform_paste"
@@ -131,11 +173,21 @@ class Pataz_rel_xform_paste(bpy.types.Operator):
     def execute(self, context):
         global Pataz_mr
         obj_1 = context.active_pose_bone
+
+        childOf = findChildOf(obj_1)
+        if childOf:
+            basis = childOfBasis(obj_1, childOf)
+
         for obj in context.selected_pose_bones:
             if obj != obj_1:
                 obj_2 = obj
         matrix_2 = obj_2.id_data.matrix_world @ obj_2.matrix
-        obj_1.matrix = matrix_2 @ Pataz_mr
+
+        if childOf:
+            obj_1.matrix = basis.inverted() @ matrix_2 @ Pataz_mr
+        else:
+            obj_1.matrix = matrix_2 @ Pataz_mr
+            
         if context.scene.tool_settings.use_keyframe_insert_auto:
             insert_xform_key(obj_1, context.scene.frame_current)
 
