@@ -19,7 +19,8 @@ This copies and pastes the relative position of the active bone to another selec
 At present it only works between 2 bones, but already this is very useful for when you want to quickly have one bone follow another without setting up a constraint.
 
 For ease of use, right click on these buttons and add them to your Quick Favorites for easy access so that you don't have to keep going back to the panel to use them.
-Please note: right now these tools don't work with the ChildOf constraint.
+
+Please note: Unlike the Copy paste world transforms addon that comes with Blender, the above operators work with bones and objects that have the ChildOf constraint. The limitiation is that it doesn't work when the influence is something other than 0 or 1.
 
 ## Settings
 <img align="right" src="https://user-images.githubusercontent.com/88658022/182589564-ef5db402-144b-4cea-84ce-05a07d109b34.jpg">
