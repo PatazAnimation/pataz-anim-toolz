@@ -46,27 +46,30 @@ def insert_xform_key(obj,fr):
     obj.keyframe_insert(data_path='scale', frame=fr, options={'INSERTKEY_AVAILABLE'})
 
 def findChildOf(obj):
-    childOf = ''
+    childOf = []
+    i = 0
     for con in obj.constraints:
         if con.type == 'CHILD_OF':
-            childOf = con.name
-            if not obj.constraints[childOf].enabled or obj.constraints[childOf].influence == 0.0:
-                print("ChildOf constraint disabled")
-                childOf = ''
+            if con.enabled and con.influence == 1.0:
+                print("ChildOf constraint "+str(i+1)+" found")
+                print(con.influence)
+
+                ChildOf_target = con.target
+                if con.subtarget:
+                    print("ChildOf parent is a bone.")
+                    childOf_parent = ChildOf_target.matrix_world @ ChildOf_target.pose.bones[con.subtarget].matrix
+                else:
+                    print("ChildOf parent is an object.")
+                    childOf_parent = ChildOf_target.matrix_world
+
+                childOf_inv = con.inverse_matrix
+
+                basis = childOf_parent @ childOf_inv
+                childOf_new = [con.name, basis]
+                childOf.append(childOf_new)
+                i += 1
     return childOf
 
-def childOfBasis(obj, childOf):
-        ChildOf_target = obj.constraints[childOf].target
-        if obj.constraints[childOf].subtarget:
-            print("ChildOf parent is a bone.")
-            childOf_parent = ChildOf_target.matrix_world @ ChildOf_target.pose.bones[obj.constraints[childOf].subtarget].matrix
-        else:
-            print("ChildOf parent is an object.")
-            childOf_parent = ChildOf_target.matrix_world
-
-        childOf_inv = obj.constraints[childOf].inverse_matrix
-        basis = childOf_parent @ childOf_inv
-        return basis
 
 # --- OPERATORS
 
@@ -137,9 +140,13 @@ class Pataz_world_matrix_paste(bpy.types.Operator):
 
         childOf = findChildOf(obj)
 
-        if childOf:
-            print("ChildOf constraint found")
-            basis = childOfBasis(obj, childOf)
+        if len(childOf) != 0:
+            print("ChildOf constraint(s) found")
+            basis = childOf[0][1]
+            
+            for i in range(1, len(childOf)):
+                basis = basis @ childOf[i][1]
+            
             if bone:
                 obj.matrix = basis.inverted() @ Pataz_mw
             else:
@@ -175,8 +182,11 @@ class Pataz_rel_xform_paste(bpy.types.Operator):
         obj_1 = context.active_pose_bone
 
         childOf = findChildOf(obj_1)
-        if childOf:
-            basis = childOfBasis(obj_1, childOf)
+        if len(childOf) != 0:
+            basis = childOf[0][1]
+            for i in range(1, len(childOf)):
+                basis = basis @ childOf[i][1]
+            childOf = True
 
         for obj in context.selected_pose_bones:
             if obj != obj_1:
