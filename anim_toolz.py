@@ -38,13 +38,6 @@ def vaildate_rel_xform():
         valid = False
     return valid
 
-def insert_xform_key(obj,fr):
-    obj.keyframe_insert(data_path='location', frame=fr, options={'INSERTKEY_AVAILABLE'})
-    obj.keyframe_insert(data_path='rotation_quaternion', frame=fr, options={'INSERTKEY_AVAILABLE'})
-    obj.keyframe_insert(data_path='rotation_euler', frame=fr, options={'INSERTKEY_AVAILABLE'})
-    obj.keyframe_insert(data_path='rotation_axis_angle', frame=fr, options={'INSERTKEY_AVAILABLE'})
-    obj.keyframe_insert(data_path='scale', frame=fr, options={'INSERTKEY_AVAILABLE'})
-
 def findChildOf(obj):
     childOf = []
     i = 0
@@ -70,6 +63,47 @@ def findChildOf(obj):
                 i += 1
     return childOf
 
+def paste_relative(context, key=True):
+    global Pataz_mr
+    obj_1 = context.active_pose_bone
+
+    childOf = findChildOf(obj_1)
+    if len(childOf) != 0:
+        basis = childOf[0][1]
+        for i in range(1, len(childOf)):
+            basis = basis @ childOf[i][1]
+        childOf = True
+
+    for obj in context.selected_pose_bones:
+        if obj != obj_1:
+            obj_2 = obj
+    matrix_2 = obj_2.id_data.matrix_world @ obj_2.matrix
+
+    if childOf:
+        obj_1.matrix = basis.inverted() @ matrix_2 @ Pataz_mr
+    else:
+        obj_1.matrix = matrix_2 @ Pataz_mr
+            
+    print("Pasted relative Xform matrix: "+str(obj_1.matrix))
+    context.view_layer.update()
+
+    if key:
+        insert_xform_key(obj_1, context.scene.frame_current)
+
+
+def insert_xform_key(obj,fr, key_options='INSERTKEY_AVAILABLE'):
+    rot_mode = obj.rotation_mode
+    obj.keyframe_insert(data_path='location', frame=fr, options={key_options})
+    if rot_mode == 'QUATERNION':
+        obj.keyframe_insert(data_path='rotation_quaternion', frame=fr, options={key_options})
+    elif rot_mode == 'AXIS_ANGLE':
+        obj.keyframe_insert(data_path='rotation_axis_angle', frame=fr, options={key_options})
+    else:
+        obj.keyframe_insert(data_path='rotation_euler', frame=fr, options={key_options})
+    obj.keyframe_insert(data_path='scale', frame=fr, options={key_options})
+    print("Inserted key at "+str(fr))
+
+    
 
 # --- OPERATORS
 
@@ -164,7 +198,7 @@ class Pataz_world_matrix_paste(bpy.types.Operator):
         return {'FINISHED'}
 
 class Pataz_rel_xform_paste(bpy.types.Operator):
-    """Paste the relative coordinates of the selected bone to the active bone\nMust have exactly 2 bones selected"""
+    """Paste the relative coordinates of the selected bone to the active bone.\nMust have exactly 2 bones selected."""
     bl_idname = "scene.pataz_rel_xform_paste"
     bl_label = "Paste Relative Transform"
     bl_options = {'REGISTER', 'UNDO'}
@@ -178,30 +212,51 @@ class Pataz_rel_xform_paste(bpy.types.Operator):
             return False
 
     def execute(self, context):
-        global Pataz_mr
-        obj_1 = context.active_pose_bone
-
-        childOf = findChildOf(obj_1)
-        if len(childOf) != 0:
-            basis = childOf[0][1]
-            for i in range(1, len(childOf)):
-                basis = basis @ childOf[i][1]
-            childOf = True
-
-        for obj in context.selected_pose_bones:
-            if obj != obj_1:
-                obj_2 = obj
-        matrix_2 = obj_2.id_data.matrix_world @ obj_2.matrix
-
-        if childOf:
-            obj_1.matrix = basis.inverted() @ matrix_2 @ Pataz_mr
-        else:
-            obj_1.matrix = matrix_2 @ Pataz_mr
-            
+        key = False
         if context.scene.tool_settings.use_keyframe_insert_auto:
-            insert_xform_key(obj_1, context.scene.frame_current)
+            key = True
+        paste_relative(context, key)
 
         return {'FINISHED'}
+
+class Pataz_rel_xform_paste_anim(bpy.types.Operator):
+    """Paste the relative coordinates of the selected bone to the active bone.\nBake the position over the timeline or preview range.\nMust have exactly 2 bones selected."""
+    bl_idname = "scene.pataz_rel_xform_paste_anim"
+    bl_label = "Paste Relative Transform - Timeline"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        global Pataz_mr
+        if Pataz_mr != '':
+            return vaildate_rel_xform()
+        else :
+            return False
+
+    def execute(self, context):
+        scene = bpy.context.scene
+        curr_time = scene.frame_current
+        obj = context.active_pose_bone
+        start = scene.frame_start
+        end = scene.frame_end
+        
+        if scene.use_preview_range:
+            start = scene.frame_preview_start
+            end = scene.frame_preview_end
+
+        insert_xform_key(obj, context.scene.frame_current, 'INSERTKEY_VISUAL')
+
+        for fr in range(start, end):
+            scene.frame_current = fr
+            print(scene.frame_current)
+            context.view_layer.update()
+            paste_relative(context)
+            print(str(obj.matrix))
+
+        scene.frame_current = curr_time            
+
+        return {'FINISHED'}
+
 
 # --- REGISTER
 
@@ -210,7 +265,7 @@ classes = (
     Pataz_world_matrix_paste,
     Pataz_rel_xform_copy,
     Pataz_rel_xform_paste,
-
+    Pataz_rel_xform_paste_anim,
 )
  
 reg_cls, unreg_cls = bpy.utils.register_classes_factory (classes)
