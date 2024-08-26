@@ -16,14 +16,34 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# Pataz Anim Toolz v0.7
+
 import bpy
 import addon_utils
 
+# sanity check
+
+valid = False
+        
+if (bpy.app.version >= (4, 2, 0)) | addon_utils.check('bone_selection_sets')[0]:
+    valid = True
+
 # Operators
         
-class pataz_set_select(bpy.types.Operator):
+class pataz_selection_set_enable(bpy.types.Operator):
+    """Enable the official Blender selection sets addon in Blender versions below 4.2"""
+    bl_idname = "pose.pataz_sel_set_addon_enable"
+    bl_label = "Enable selection sets"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        addon_utils.enable('bone_selection_sets', default_set=True)
+        return {'FINISHED'}
+
+
+class pataz_selection_set_select(bpy.types.Operator):
     """Select bones in the set. Shift to add, Ctrl to remove"""
-    bl_idname = "pose.pataz_set_select"
+    bl_idname = "pose.pataz_selection_set_select"
     bl_label = "Select bones in set"
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -35,7 +55,7 @@ class pataz_set_select(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return (addon_utils.check('bone_selection_sets')[0])&(context.mode == 'POSE')
+        return valid & (context.mode == 'POSE')
             
     def invoke(self, context, event):
         arm = context.active_object
@@ -64,9 +84,9 @@ class pataz_set_select(bpy.types.Operator):
         arm.selection_sets[self.index].name = self.set_name
         return {'FINISHED'}
 
-class pataz_set_new(bpy.types.Operator):
+class pataz_selection_set_new(bpy.types.Operator):
     """Creates a new selection set with the current selection."""
-    bl_idname = "pose.pataz_set_new"
+    bl_idname = "pose.pataz_selection_set_new"
     bl_label = "Create new selection set"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -77,7 +97,7 @@ class pataz_set_new(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return (addon_utils.check('bone_selection_sets')[0])&(context.mode == 'POSE')
+        return valid & (context.mode == 'POSE')
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -96,20 +116,19 @@ class pataz_set_new(bpy.types.Operator):
 
         return {'FINISHED'}
 
-class pataz_sets_copy(bpy.types.Operator):
+class pataz_selection_set_copy(bpy.types.Operator):
     """Copies the selection sets to the clipboard."""
-    bl_idname = "pose.pataz_sets_copy"
+    bl_idname = "pose.pataz_selection_set_copy"
     bl_label = "Copy selection sets."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        return (addon_utils.check('bone_selection_sets')[0])&(context.mode == 'POSE')
+        return valid & context.mode == 'POSE'
             
     def execute(self, context):
         arm = context.active_object
         for i in range( 0, len(arm.selection_sets), 1):
-            print('fwarp')
             print(arm.selection_sets[i].name)
             arm.selection_sets[i].is_selected = True
 
@@ -117,75 +136,10 @@ class pataz_sets_copy(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
-class pataz_sets_enable(bpy.types.Operator):
-    """Enable the official Blender selection sets addon"""
-    bl_idname = "pose.pataz_sel_set_addon_enable"
-    bl_label = "Enable selection sets"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        addon_utils.enable('bone_selection_sets', default_set=True)
-        return {'FINISHED'}
-
-
-# UI
-
-class pataz_selection_sets_panel(bpy.types.Panel):
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = 'Pataz'
-    bl_label = "Selection Sets"
-    bl_idname = "OBJECT_PT_le_selection_panel_ui"
-
-    def draw(self, context):
-        layout = self.layout
-        arm = context.object
-        layout.panel('pose.pataz_selection_buttons_ui')
-
-class pataz_selection_sets_panel(bpy.types.Panel):
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = 'Pataz'
-    bl_label = "Bone Selection Sets"
-    bl_idname = "OBJECT_PT_le_pataz_selection_set_buttons"
-    
-    @classmethod
-    def poll(cls, context):
-        return context.mode == 'POSE'
-
-    def draw(self, context):
-        layout = self.layout
-        arm = context.object
-
-        # UI list
-        row = layout.row()
-
-        if (addon_utils.check('bone_selection_sets')[0]):
-            row.operator('pose.pataz_sets_copy', text="Copy", icon="COPYDOWN")
-            row.operator('pose.selection_set_paste', text="Paste", icon="PASTEDOWN")
-            row.operator('pose.selection_set_delete_all', text="Clear", icon="CANCEL")
-
-            box = layout.box()
-            split = box.split(factor=0.9)
-            col_1 = split.column()
-            col_2 = split.column()
-            for i in range( 0, len(arm.selection_sets), 1):
-                set_name = arm.selection_sets[i].name
-                button = col_1.operator('pose.pataz_set_select', text=set_name)
-                button.index = i
-                button = col_2.operator('pose.pataz_selection_set_options', text = '...')
-                button.index = i
-            row = layout.row()
-            row.operator('pose.pataz_set_new', text="New", icon="PLUS")
-        else:
-            row.operator('pose.pataz_sel_set_addon_enable', text="Enable selection sets.")
-            
-
-class pataz_selection_set_options_popup(bpy.types.Operator):
-    """Change the selection set"""
-    bl_idname = "pose.pataz_selection_set_options"
-    bl_label = "Selection Set Options"
+class pataz_selection_set_assign(bpy.types.Operator):
+    """Add Selected bones to the set."""
+    bl_idname = "pose.pataz_selection_set_assign"
+    bl_label = "Add selected bones to set"
     bl_options = {'REGISTER', 'UNDO'}
     
     index: bpy.props.IntProperty(
@@ -194,41 +148,154 @@ class pataz_selection_set_options_popup(bpy.types.Operator):
         options={'HIDDEN'}
     )
 
+    @classmethod
+    def poll(cls, context):
+        return valid & (context.mode == 'POSE')
+            
+    def execute(self, context):
+        arm = context.object
+        arm.active_selection_set = self.index
+        bpy.ops.pose.selection_set_assign()
+        return {'FINISHED'}
+
+class pataz_selection_set_unassign(bpy.types.Operator):
+    """Remove Selected bones to the set."""
+    bl_idname = "pose.pataz_selection_set_unassign"
+    bl_label = "Remove selected bones to set"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    index: bpy.props.IntProperty(
+        name = 'index',
+        default = 0,
+        options={'HIDDEN'}
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return valid & (context.mode == 'POSE')
+            
+    def execute(self, context):
+        arm = context.object
+        arm.active_selection_set = self.index
+        bpy.ops.pose.selection_set_unassign()
+        return {'FINISHED'}
+
+class pataz_selection_set_remove(bpy.types.Operator):
+    """Remove Selection set."""
+    bl_idname = "pose.pataz_selection_set_remove"
+    bl_label = "Remove the selection set"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    index: bpy.props.IntProperty(
+        name = 'index',
+        default = 0,
+        options={'HIDDEN'}
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return valid & (context.mode == 'POSE')
+            
+    def execute(self, context):
+        arm = context.object
+        arm.active_selection_set = self.index
+        bpy.ops.pose.selection_set_remove()
+        return {'FINISHED'}
+
+
+# UI
+
+
+class pataz_selection_sets_panel(bpy.types.Panel):
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = 'Pataz'
+    bl_label = "Bone Selection Sets"
+    bl_idname = "OBJECT_PT_pataz_selection_set_buttons"
+    
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'POSE'
+
     def draw(self, context):
-
         layout = self.layout
-        layout.ui_units_x = 8
+        arm = context.object
+        row = layout.row()
+        if valid:
+            row.operator('pose.pataz_selection_sets_header_panel', text="Selection Sets Popup", icon="WINDOW")
+        else:
+            row.operator('pose.pataz_sel_set_addon_enable', text="Enable selection sets.")
+
+
+class pataz_selection_sets_header_panel(bpy.types.Operator):
+    bl_idname = "pose.pataz_selection_sets_header_panel"
+    bl_label = "Bone Selection Sets"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    index: bpy.props.IntProperty(
+        name = 'index',
+        default = 0,
+        options={'HIDDEN'}
+    )
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.ui_units_x = 12
+        arm = context.object
+
+        # UI list
+        row = layout.row()
+
+        row.operator('pose.pataz_selection_set_copy', text="", icon="COPYDOWN")
+        row.operator('pose.selection_set_paste', text="", icon="PASTEDOWN")
+        row.operator('pose.selection_set_delete_all', text="", icon="CANCEL")
+
+        box = layout.box()
+        split = box.split(factor=0.9)
+        col_1 = split.column()
+        col_2 = split.column()
+
+        for i in range( 0, len(arm.selection_sets), 1):
+            row = layout.row()
+            button = row.operator('pose.pataz_selection_set_assign', icon="ADD", text='')
+            button.index = i
+            button = row.operator('pose.pataz_selection_set_unassign', icon="REMOVE", text='')
+            button.index = i
+            set_name = arm.selection_sets[i].name
+            button = row.operator('pose.pataz_selection_set_select', text=set_name)
+            button.index = i
+            button = row.operator('pose.pataz_selection_set_remove', icon="PANEL_CLOSE", text='')
+            button.index = i
 
         row = layout.row()
-        row.prop(context.object.selection_sets[self.index],"name", text='')
-        row = layout.row()
-        row.operator('pose.selection_set_assign', icon="ADD", text='Add selection')
-        row = layout.row()
-        row.operator('pose.selection_set_unassign', icon="REMOVE", text='Remove selection')
-        row = layout.row()
-        row.operator('pose.selection_set_remove', icon="PANEL_CLOSE", text='Delete set')
-
+        row.operator('pose.pataz_selection_set_new', text="New", icon="PLUS")
+        
     def execute(self, context):
         return {'FINISHED'}
  
     def invoke(self, context, event):
         context.object.active_selection_set = self.index
         return context.window_manager.invoke_popup(self)
+            
 
 # Register classes
 
 classes = (
-    pataz_set_select,
-    pataz_set_new,
-    pataz_sets_copy,
-    pataz_sets_enable,
+    pataz_selection_set_select,
+    pataz_selection_set_new,
+    pataz_selection_set_copy,
+    pataz_selection_set_enable,
+    pataz_selection_set_assign,
+    pataz_selection_set_unassign,
+    pataz_selection_set_remove,
     pataz_selection_sets_panel,
-    pataz_selection_set_options_popup
+    pataz_selection_sets_header_panel
 )
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+
 
 def unregister():
     for cls in classes:
