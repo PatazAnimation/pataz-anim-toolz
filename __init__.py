@@ -16,11 +16,13 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# Pataz Anim Toolz v0.7
+
 bl_info = {
 	'name': 'Pataz Anim Toolz',
-	'author': 'Beorn Leonard , Daniel Salazar <support@blenderaddon.com>',
-	'version': (0, 1),
-	'blender': (2, 80, 0),
+	'author': 'Beorn Leonard',
+	'version': (0, 7),
+	'blender': (3, 6, 0),
 	'location': 'Toolbar > Pataz',
 	'description': 'Animation Tools',
 	'wiki_url': 'http://blenderaddon.com/',
@@ -57,5 +59,4 @@ def unregister():
  
 if __name__ == "__main__":
     register()
-
 
