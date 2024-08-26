@@ -15,6 +15,9 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 #======================= END GPL LICENSE BLOCK ========================
+
+# Pataz Anim Toolz v0.7
+
 import bpy
 import mathutils
 
@@ -22,6 +25,28 @@ import mathutils
 
 Pataz_mw = ''
 Pataz_mr = ''
+
+class PatazAnimProps (bpy.types.PropertyGroup):
+
+    frame_step : bpy.props.IntProperty (
+    name = 'frame step',
+    description = 'Frame Step for Baking',
+    default = 1,
+    min = 1,
+    max = 50,
+    options = set() # Non animatable
+    )
+    
+    paste_to_keys : bpy.props.BoolProperty (
+    name = 'Existing keys only',
+    description = 'Only bake to existing keys',
+    default = False,
+    options = set() # Non animatable
+    )
+
+
+bpy.utils.register_class(PatazAnimProps)
+bpy.types.Scene.pataz_anim = bpy.props.PointerProperty(type = PatazAnimProps)
 
 # --- FUNCTIONS
 
@@ -84,7 +109,7 @@ def paste_relative(context, key=True):
     else:
         obj_1.matrix = matrix_2 @ Pataz_mr
             
-    print("Pasted relative Xform matrix: "+str(obj_1.matrix))
+#    print("Pasted relative Xform matrix: "+str(obj_1.matrix))
     context.view_layer.update()
 
     if key:
@@ -101,9 +126,22 @@ def insert_xform_key(obj,fr, key_options='INSERTKEY_AVAILABLE'):
     else:
         obj.keyframe_insert(data_path='rotation_euler', frame=fr, options={key_options})
     obj.keyframe_insert(data_path='scale', frame=fr, options={key_options})
-    print("Inserted key at "+str(fr))
+#    print("Inserted key at "+str(fr))
 
-    
+
+def get_keyed_frames():
+    frames = []
+    fcurves = bpy.context.active_object.animation_data.action.fcurves
+    bones = bpy.context.selected_pose_bones
+    bones = [b.name for b in bones]
+
+    fcurves_selected = [f for f in fcurves if f.data_path.split('"')[1] in bones]
+    for fcu in fcurves:
+        for kf in fcu.keyframe_points:
+            frames.append(int(kf.co[0]))
+
+    print(frames)
+    return frames
 
 # --- OPERATORS
 
@@ -198,7 +236,7 @@ class Pataz_world_matrix_paste(bpy.types.Operator):
         return {'FINISHED'}
 
 class Pataz_rel_xform_paste(bpy.types.Operator):
-    """Paste the relative coordinates of the selected bone to the active bone.\nMust have exactly 2 bones selected."""
+    """Paste the relative coordinates of the selected bone to the active bone\nMust have exactly 2 bones selected"""
     bl_idname = "scene.pataz_rel_xform_paste"
     bl_label = "Paste Relative Transform"
     bl_options = {'REGISTER', 'UNDO'}
@@ -220,7 +258,7 @@ class Pataz_rel_xform_paste(bpy.types.Operator):
         return {'FINISHED'}
 
 class Pataz_rel_xform_paste_anim(bpy.types.Operator):
-    """Paste the relative coordinates of the selected bone to the active bone.\nBake the position over the timeline or preview range.\nMust have exactly 2 bones selected."""
+    """Paste the relative coordinates of the selected bone to the active bone\nMust have exactly 2 bones selected"""
     bl_idname = "scene.pataz_rel_xform_paste_anim"
     bl_label = "Paste Relative Transform - Timeline"
     bl_options = {'REGISTER', 'UNDO'}
@@ -235,6 +273,11 @@ class Pataz_rel_xform_paste_anim(bpy.types.Operator):
 
     def execute(self, context):
         scene = bpy.context.scene
+        paste_to_keys = scene.pataz_anim.paste_to_keys
+        frame_step = scene.pataz_anim.frame_step
+        frames = []
+
+
         curr_time = scene.frame_current
         obj = context.active_pose_bone
         start = scene.frame_start
@@ -244,19 +287,61 @@ class Pataz_rel_xform_paste_anim(bpy.types.Operator):
             start = scene.frame_preview_start
             end = scene.frame_preview_end
 
-        insert_xform_key(obj, context.scene.frame_current, 'INSERTKEY_VISUAL')
+        if paste_to_keys:
+            frames = get_keyed_frames()
 
-        for fr in range(start, end):
+        else:
+            frames.append(start)
+            for fr in range(start, end):
+                if ((fr-start)/frame_step).is_integer():
+                    frames.append(fr) 
+
+        bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_VisualLocRotScale")
+
+
+        for fr in frames:
             scene.frame_current = fr
-            print(scene.frame_current)
             context.view_layer.update()
             paste_relative(context)
-            print(str(obj.matrix))
 
         scene.frame_current = curr_time            
 
         return {'FINISHED'}
 
+class Pataz_paste_timeline_popup(bpy.types.Operator):
+    """Paste transform to the timeline"""
+    bl_idname = "scene.pataz_paste_timeline_options"
+    bl_label = "Paste Timeline Options"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    @classmethod
+    def poll(cls, context):
+        global Pataz_mr
+        if Pataz_mr != '':
+            return vaildate_rel_xform()
+        else :
+            return False
+
+
+    def draw(self, context):
+        scene = context.scene
+
+        layout = self.layout
+        layout.ui_units_x = 8
+
+        row = layout.row()
+        row.prop(scene.pataz_anim,"frame_step")
+        row = layout.row()
+        row.prop(scene.pataz_anim,"paste_to_keys")
+        row = layout.row()
+        row.operator("scene.pataz_rel_xform_paste_anim", text="Paste", icon="TIME")
+
+    def execute(self, context):
+        return {'FINISHED'}
+ 
+    def invoke(self, context, event):
+#        context.object.active_selection_set = self.index
+        return context.window_manager.invoke_popup(self)
 
 # --- REGISTER
 
@@ -266,6 +351,7 @@ classes = (
     Pataz_rel_xform_copy,
     Pataz_rel_xform_paste,
     Pataz_rel_xform_paste_anim,
+    Pataz_paste_timeline_popup
 )
  
 reg_cls, unreg_cls = bpy.utils.register_classes_factory (classes)
