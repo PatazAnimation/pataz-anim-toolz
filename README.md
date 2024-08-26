@@ -4,6 +4,8 @@
 This is a simple addon that rearranges some of the animation related UI elements in Blender for more efficient workflow. 
 It also comes with a few new tools to help out animators.
 
+The latest update works with Bender 4.2
+
 ## Tools
 
 The addon provides 2 new copy/paste tools:
@@ -46,10 +48,14 @@ This is where you can mute the audio and turn scrubbing on and off.
 For now this section only contains simplify, but there are plans to add more settings to this section to optimise viewport performance.
 
 ## Bone Selection Sets
-<img align="right" src="https://user-images.githubusercontent.com/88658022/182589499-d6837421-18f0-42e3-ac29-5ce0475d5e6e.jpg">
-
-This panel reorganises the UI for the Bone Selection Sets addon that comes with Blender. 
+This panel reorganises the UI for the Bone Selection Sets addon that comes with Blender, which as of Blender 4.2 is now integrated into Blender. 
 It is only displayed when the active object is an armature in pose mode.
+
+It is meant as a popup menu for which you can assign a shortcut.
+To do this, navigate to the Pataz tab in your viewport N menu, locate the "Selection Sets Popup" button, right click on it and select 'Assign Shortcut'.
+(For what it's worth, I use the 'e' key.)
+
+For Blender versions before 4.2:
 In order to use it, you have to enable the official Bone Selection Sets addon. If the addon is not enabled, a button is displayed so that you can enabled it without having to go to user preferences.
 In addition to making use of the official selection sets addon, thus maintaining compatibility, it also changes some of the behaviour.
 
@@ -66,8 +72,7 @@ The behaviour of selecting a set has behaves more like selection in other progra
 - Ctrl-LMB: removes the set from your selection.
 
 ### Selection Set options:
-To the right of each set is a button labelled "..." that opens an options panel for that set. It enables you to:
-- rename the selection set
+As well as that, there are buttons to:
 - add your selection to that set.
 - remove your selection from that set.
 - delete the selection set.
