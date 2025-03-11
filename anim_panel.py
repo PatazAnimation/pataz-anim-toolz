@@ -167,6 +167,8 @@ class PatazAnimToolzLinks (bpy.types.Panel):
         
         row = layout.row()
         row.operator('wm.url_open', text='Read the Manual', icon = 'HELP').url = 'https://github.com/PatazAnimation/anim-toolz'
+        row = layout.row()
+        row.operator('wm.url_open', text='Hire a Blender Expert', icon = 'BLENDER').url = 'https://www.patazanimation.com'
 
 class PatazAnimSettingzHeaderPanel(bpy.types.Operator):
     bl_idname = "scene.pataz_anim_settingz_header_panel"
