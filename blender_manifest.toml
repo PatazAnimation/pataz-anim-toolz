@@ -1,8 +1,8 @@
 schema_version = "1.0.0"
 
-id = "anim_toolz"
+id = "pataz_anim_toolz"
 version = "0.0.7"
-name = "Anim Toolz"
+name = "Pataz Anim Toolz"
 tagline = "Animation tools"
 maintainer = "Beorn Leonard"
 type = "add-on"
