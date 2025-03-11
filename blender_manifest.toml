@@ -1,0 +1,16 @@
+schema_version = "1.0.0"
+
+id = "anim_toolz"
+version = "0.0.7"
+name = "Anim Toolz"
+tagline = "Animation tools"
+maintainer = "Beorn Leonard"
+type = "add-on"
+
+website = "https://patazanimation.com/"
+
+tags = ["Animation"]
+
+blender_version_min = "4.2.0"
+
+license = ["SPDX:GPL-3.0-or-later"]
