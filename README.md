@@ -1,10 +1,10 @@
 # pataz-anim-toolz
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-This is a simple addon that rearranges some of the animation related UI elements in Blender for more efficient workflow. 
+This is a simple addon that rearranges some of the animation related UI elements in Blender for more efficient workflow.
 It also comes with a few new tools to help out animators.
 
-The latest update works with Bender 4.2
+The latest update works with Blender 4.2 and is available from the [PATAZ Extension Repository](https://extensions.patazanimation.com/).
 
 ## Tools
 
