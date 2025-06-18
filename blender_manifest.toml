@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "pataz_anim_toolz"
-version = "0.0.7"
+version = "0.0.8"
 name = "Pataz Anim Toolz"
 tagline = "Animation tools"
 maintainer = "Beorn Leonard"
