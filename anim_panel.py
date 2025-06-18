@@ -24,7 +24,7 @@ import bpy
 
 class PatazAnimToolz (bpy.types.Panel):
     bl_idname = 'OBJECT_PT_PatazAnimToolz'
-    bl_label = 'Anim Toolz'
+    bl_label = 'PATAZ Anim Toolz'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'Animation'
