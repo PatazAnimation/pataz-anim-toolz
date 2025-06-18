@@ -27,7 +27,7 @@ class PatazAnimToolz (bpy.types.Panel):
     bl_label = 'Anim Toolz'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Anim'
+    bl_category = 'Animation'
     
     @classmethod
     def poll(cls, context):
@@ -42,7 +42,7 @@ class PatazAnimToolzOperatorPanel (bpy.types.Panel):
     bl_label = ''
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Anim'
+    bl_category = 'Animation'
     
     @classmethod
     def poll(cls, context):
@@ -77,7 +77,7 @@ class PatazAnimToolzSettingsPanel (bpy.types.Panel):
     bl_label = ''
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Anim'
+    bl_category = 'Animation'
     
     @classmethod
     def poll(cls, context):
@@ -148,7 +148,7 @@ class PatazAnimToolzLinks (bpy.types.Panel):
     bl_label = ''
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Anim'
+    bl_category = 'Animation'
     bl_options = {'DEFAULT_CLOSED'}
     
     @classmethod
@@ -240,7 +240,7 @@ class PatazAnimSettingzHeaderPanel(bpy.types.Operator):
 class PatazAnimSettingzHeader(bpy.types.Panel):
     bl_space_type = "DOPESHEET"
     bl_region_type = 'HEADER'
-    bl_category = 'Anim'
+    bl_category = 'Animation'
     bl_label = "Animation Settigz"
     bl_idname = "OBJECT_PT_pataz_anim_settings_header"
     
