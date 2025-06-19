@@ -209,7 +209,7 @@ class pataz_selection_set_remove(bpy.types.Operator):
 class pataz_selection_sets_panel(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = 'Anim'
+    bl_category = 'Animation'
     bl_label = "Bone Selection Sets"
     bl_idname = "OBJECT_PT_pataz_selection_set_buttons"
     
