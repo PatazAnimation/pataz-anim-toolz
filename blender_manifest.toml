@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "pataz_anim_toolz"
-version = "0.0.8"
+version = "0.0.9"
 name = "Pataz Anim Toolz"
 tagline = "Animation tools"
 maintainer = "Beorn Leonard"
@@ -12,6 +12,6 @@ website = "https://patazanimation.com/"
 tags = ["Animation"]
 
 blender_version_min = "4.2.0"
-blender_version_max = "4.5.9"
+blender_version_max = "5.0.1"
 
 license = ["SPDX:GPL-3.0-or-later"]
