@@ -4,7 +4,7 @@
 This is a simple addon that rearranges some of the animation related UI elements in Blender for more efficient workflow.
 It also comes with a few new tools to help out animators.
 
-The latest update works with Blender 4.2 and is available from the [PATAZ Extension Repository](https://extensions.patazanimation.com/).
+The latest update works with Blender 5.0 and is available from the [PATAZ Extension Repository](https://extensions.patazanimation.com/).
 
 ## Tools
 
