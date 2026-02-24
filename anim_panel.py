@@ -182,6 +182,7 @@ class PatazAnimSettingzHeaderPanel(bpy.types.Operator):
     )
     
     def draw(self, context):
+        v5 = bpy.app.version[0] > 4
         layout = self.layout
         layout.ui_units_x = 12
 
@@ -189,20 +190,22 @@ class PatazAnimSettingzHeaderPanel(bpy.types.Operator):
         scene = context.scene
         tool_settings = context.tool_settings
        
-        box = layout.box()
-        box.label(text="Timeline", icon="TIME")
-        row = box.row()
-        if not scene.use_preview_range:
-            row.prop(scene, "frame_start", text="Start")
-            row.prop(scene, "frame_end", text="End")
-        else:
-            row.prop(scene, "frame_preview_start", text="Start")
-            row.prop(scene, "frame_preview_end", text="End")
+        if not v5:
+            box = layout.box()
+            box.label(text="Timeline", icon="TIME")
+            row = box.row()
+            if not scene.use_preview_range:
+                row.prop(scene, "frame_start", text="Start")
+                row.prop(scene, "frame_end", text="End")
+            else:
+                row.prop(scene, "frame_preview_start", text="Start")
+                row.prop(scene, "frame_preview_end", text="End")
         box = layout.box()
         box.label(text="Keying", icon="KEYINGSET")
-        row = box.row()
-        row.prop(context.tool_settings, "use_keyframe_insert_auto", text="")
-        row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
+        if not v5:
+            row = box.row()
+            row.prop(context.tool_settings, "use_keyframe_insert_auto", text="")
+            row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
         row = box.row()
         row.prop(context.preferences.edit, "keyframe_new_interpolation_type", text="")
         row.prop(context.preferences.edit, "keyframe_new_handle_type", text="")
@@ -212,16 +215,18 @@ class PatazAnimSettingzHeaderPanel(bpy.types.Operator):
         row.prop(context.preferences.edit, "use_keyframe_insert_available", text="Available")
         row.prop(context.tool_settings, "use_keyframe_cycle_aware", text="Cycle Aware")
         
-        box = layout.box()
-        box.label(text="Playback", icon="PLAY")
-        row = box.row()
-        row.prop(context.scene, "sync_mode", text="")
+        if not v5:
+            box = layout.box()
+            box.label(text="Playback", icon="PLAY")
+            row = box.row()
+            row.prop(context.scene, "sync_mode", text="")
 
-        box = layout.box()
-        box.label(text="Audio", icon="SOUND")
-        row = box.row()
-        row.prop(context.scene, "use_audio", text="Mute", icon='MUTE_IPO_OFF' if scene.use_audio else 'MUTE_IPO_ON')
-        row.prop(context.scene, "use_audio_scrub", text="Scrubbing", icon="SEQ_HISTOGRAM")
+        if not v5:
+            box = layout.box()
+            box.label(text="Audio", icon="SOUND")
+            row = box.row()
+            row.prop(context.scene, "use_audio", text="Mute", icon='MUTE_IPO_OFF' if scene.use_audio else 'MUTE_IPO_ON')
+            row.prop(context.scene, "use_audio_scrub", text="Scrubbing", icon="SEQ_HISTOGRAM")
         
         box = layout.box()
         box.label(text="Optimisation", icon="ALIASED")
@@ -233,7 +238,6 @@ class PatazAnimSettingzHeaderPanel(bpy.types.Operator):
         return {'FINISHED'}
  
     def invoke(self, context, event):
-#        context.object.active_selection_set = self.index
         return context.window_manager.invoke_popup(self)
 
 
@@ -252,8 +256,6 @@ class PatazAnimSettingzHeader(bpy.types.Panel):
 def anim_header_button(self, context):
     layout = self.layout
     layout.operator('scene.pataz_anim_settingz_header_panel', text='', icon='SETTINGS')
-#        layout.menu('pose.pataz_selection_sets_header_panel', text='Selection Sets', icon='GROUP_BONE')
-
 
 
 classes = (
@@ -269,8 +271,13 @@ reg_cls, unreg_cls = bpy.utils.register_classes_factory (classes)
  
 def register():
     reg_cls()
-    bpy.types.DOPESHEET_HT_header.append(anim_header_button)
-    bpy.types.GRAPH_HT_header.append(anim_header_button)
+    if bpy.app.version[0] < 5:
+        bpy.types.DOPESHEET_HT_header.append(anim_header_button)
+        bpy.types.GRAPH_HT_header.append(anim_header_button)
+    else:
+        bpy.types.DOPESHEET_HT_playback_controls.append(anim_header_button)
+        bpy.types.GRAPH_HT_playback_controls.append(anim_header_button)
+        
  
 def unregister():
     unreg_cls()
