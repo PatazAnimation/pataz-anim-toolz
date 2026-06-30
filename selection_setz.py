@@ -69,11 +69,11 @@ class pataz_selection_set_select(bpy.types.Operator):
         if (not event.shift)&(not event.ctrl):
             bpy.ops.pose.select_all(action='DESELECT')
         if not event.ctrl:
-            for bone in arm.pose.bones:
+            for bone in arm.data.bones:
                 if bone.name in sel_set.bone_ids:
                     bone.select = True            
         else:
-            for bone in arm.pose.bones:
+            for bone in arm.data.bones:
                 if bone.name in sel_set.bone_ids:
                     bone.select = False
 
